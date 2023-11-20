@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 
 class AuthController extends Controller
 {
@@ -16,20 +19,48 @@ class AuthController extends Controller
             'password' => 'required|string|confirmed'
         ]);
 
-        $user = User::create([
-            'name' => $fields['name'],
-            'email' => $fields['email'],
-            'password' => bcrypt($fields['password'])
-        ]);
+        DB::beginTransaction();
+        try {
+            $user = User::create([
+                'name' => $fields['name'],
+                'email' => $fields['email'],
+                'password' => bcrypt($fields['password'])
+            ]);
+    
+            $token = $user->createToken('myapptoken')->plainTextToken;
+            
+            // Send Email by Calling Email Service
+            $sendEmail = Http::post(env("EMAIL_SERVICE")."/api/send-email", [
+                "name" => $fields['name'],
+                "body" => "Welcome " . $fields['name'],
+                "recipient_email" => $fields['email'],
+                "recipient_name" => $fields['name'],
+                "subject" => "Welcome To " . env("APP_NAME") . "!"
+            ]);
 
-        $token = $user->createToken('myapptoken')->plainTextToken;
-
-        $response = [
-            'user' => $user,
-            'token' => $token
-        ];
-
-        return response($response, 201);
+            // Check Response
+            if ($sendEmail->successful()) {
+                // Commit changes if success
+                DB::commit();
+                $response = [
+                    'user' => $user,
+                    'token' => $token
+                ];
+        
+                return response($response, 201);
+            } else {
+                // Rollback changes if fail
+                DB::rollBack();
+                $response = [
+                    "message" => "Failed to register user!" . $sendEmail->body()
+                ];
+                
+                return response($response, 500);
+            }
+        } catch (\Throwable $th) {
+            // Rollback changes if fail
+            DB::rollBack();
+        }
     }
 
     public function login(Request $request) {
@@ -64,5 +95,14 @@ class AuthController extends Controller
         return [
             'message' => 'Logged out'
         ];
+    }
+
+    public function me() {
+        print_r(auth()->user());
+        if (Auth::user()) {
+            return response(["user" => Auth::user(), 200]);
+        }
+
+        return response(["message" => "User not found or not logged in!"], 404);
     }
 }
