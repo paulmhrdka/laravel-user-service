@@ -1,6 +1,6 @@
 # Basic Laravel Rest API
 
-This is an example of a REST API using auth tokens with Laravel Sanctum
+This is an example of a REST API using auth tokens with Laravel Sanctum - enhancement from this [Repository](https://github.com/bradtraversy/laravel-sanctum-api)
 
 ## How to Run
 - Change the *.env.example* to *.env* and add your database info

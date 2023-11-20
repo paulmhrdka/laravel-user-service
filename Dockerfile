@@ -22,7 +22,7 @@ RUN composer install --no-scripts --no-autoloader
 COPY . /var/www/html/
 
 # Generate autoload files
-RUN composer dump-autoload
+RUN composer dump-autoload --optimize
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache

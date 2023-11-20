@@ -1,0 +1,48 @@
+services:
+  # name of service
+  backend:
+    # build image from current Dockerfile
+    build: . 
+    # define service port
+    ports:
+      - "8000:8000"
+    # set network
+    networks:
+      - mynetwork
+    # set volume - using host volume
+    volumes:
+      - ./storage:/var/www/html/storage
+      - ./vendor:/var/www/html/vendor
+    # set depending service
+    depends_on:
+      - db
+    # set environment variables
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=basic_laravel
+      - DB_USERNAME=root
+      - DB_PASSWORD=s3cr3tp4ss
+  db:
+    # pull image
+    image: "mysql:latest"
+    environment:
+      - MYSQL_ROOT_PASSWORD=s3cr3tp4ss
+    networks:
+      - mynetwork
+    volumes:
+      - mysql-data:/var/lib/mysql
+  adminer:
+    image: "adminer:latest"
+    networks:
+      - mynetwork
+    depends_on:
+      - db
+
+networks:
+  mynetwork:
+    external: true
+
+volumes:
+  myvolume:
+  mysql-data:
