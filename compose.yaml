@@ -8,7 +8,7 @@ services:
       - "8000:8000"
     # set network
     networks:
-      - mynetwork
+      - product_service_network
     # set volume - using host volume
     volumes:
       - ./storage:/var/www/html/storage
@@ -18,25 +18,18 @@ services:
       - db
   db:
     # pull image
-    image: "mysql:latest"
-    # set environment variables
+    image: "postgres:latest"
     environment:
-      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     networks:
-      - mynetwork
+      - product_service_network
     volumes:
-      - mysql-data:/var/lib/mysql
-  adminer:
-    image: "adminer:latest"
-    networks:
-      - mynetwork
-    depends_on:
-      - db
+      - product_service_volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
 networks:
-  mynetwork:
-    external: true
+  product_service_network:
 
 volumes:
-  myvolume:
-  mysql-data:
+  product_service_volume:

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -26,6 +27,11 @@ class AuthController extends Controller
                 'email' => $fields['email'],
                 'password' => bcrypt($fields['password'])
             ]);
+
+            // Example Log
+            Log::info("User created: " . $user->id);
+            Log::debug("Sending email to: " . $fields['email']);
+            Log::error("Error sending email to: " . $fields['email']);
     
             $token = $user->createToken('myapptoken')->plainTextToken;
             
@@ -104,5 +110,11 @@ class AuthController extends Controller
         }
 
         return response(["message" => "User not found or not logged in!"], 404);
+    }
+
+    public function index()
+    {
+        Log::info("Get ALL");
+        return User::all();
     }
 }
